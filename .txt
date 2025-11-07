@@ -1,0 +1,25 @@
+
+
+
+
+/bin/bash -c "$(curl -fsSL https://php.new/install/linux/8.4)"
+
+laravel new example-app
+
+npm install               # -g @google/gemini-cli
+
+php artisan key:generate
+
+php artisan migrate       # :rollback --step=3
+
+php  artisan make:model NameModel -mcr
+
+composer run dev          #  php artisan serve   &&   npm run dev
+
+php artisan route:list
+
+php artisan tinker        # h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5
+
+
+
+
