@@ -1,6 +1,13 @@
 <?php
 
 /**
+------------ Node JS 22 -----------------
+
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+
+sudo apt install nodejs
+
+------------- Laravel -------------------
 
 /bin/bash -c "$(curl -fsSL https://php.new/install/linux/8.4)"
 
