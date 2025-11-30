@@ -1,44 +1,17 @@
 
-# ------------- instalara aircrack-ng, nmap, metasploit-framework.
-
-# sudo apt install aircrack-ng && sudo apt install nmap
-
-# sudo snap install metasploit-framework 
-
-# ------------- descobrir senha Wi-Fi 
-
-# Verificar interface
-# sudo airmon-ng start wlan0
-
-# Capturar handshake
-# sudo airodump-ng wlan0mon --essid XPTO -w captura
-
-# Quebrar senha com aircrack-ng
-# sudo aircrack-ng -w /usr/share/wordlists/rockyou.txt captura-01.cap
-
-# ------------- Usar nmap para escanear a rede, identifique a Metasploitable e explore vulnerabilidades conhecidas (ex: vsftpd, UnrealIRCd, samba...).
-
-# nmap -sV -O 192.168.1.0/24
-
-# ------------- Aplicar exploits via Metasploit Framework (ou manualmente).
-
-# msfconsole
-
-# ------------- Quebrar senha de usuário por dicionário:
-
-# identificar usuário no arquivo /ect/shadow:
-#cat /etc/shadow 
- 
-test_user:$6$j9T$TiidYTJ6G9Qd6R9uspFgx0$ePEsjoPVowg2lcOPb7TDZltCVHUaUBaTG.NrA9Zcx/7:20382:0:99999:7:::
-
-
-# openssl password  -<$o númerno do tipo de criptografia> -salt '<$O salt>' -table in <arquovo_dicionário> | grep '<Rash obtido com o comando cat>'
- 
-# exemplo:
-# openssl password  -6 -salt 'j9T$TiidYTJ6G9Qd6R9uspFgx0' -table in lista1 | grep '$6$j9T$TiidYTJ6G9Qd6R9uspFgx0$ePEsjoPVowg2lcOPb7TDZltCVHUaUBaTG.NrA9Zcx/7000'
- 
+institutofederal
+institutofederaldepernambuco
+if
+ifpe
+tsi
+@lunoifp3
+root
+msfadmin
+postgres
+user
 
 Universo Marvel
+marvel
 
 Heróis
 
@@ -168,6 +141,7 @@ caliban
 callisto
 
 Universo DC
+dc
 
 Heróis
 
@@ -5968,5 +5942,6 @@ tocantinia
 tocantinopolis
 tupirama
 tupiratins
+donalourdes
 wanderlandia
 xambioa

