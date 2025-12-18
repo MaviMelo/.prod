@@ -19,7 +19,7 @@ php artisan key:generate
 
 php artisan migrate       # :rollback --step=3
 
-php  artisan make:model NameModel -mcr
+php artisan make:model NameModel -mcr
 
 composer run dev          #  php artisan serve   &&   npm run dev
 
@@ -27,7 +27,16 @@ php artisan route:list
 
 php artisan tinker        # h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5
 
-*/
+composer remove laravel/boost
+composer require laravel/boost --dev
+php artisan boost:install --force
+
+------------- VS Code -------------------
+
+Estenções: 
+	Laravel; Laravel Blade Formatter.
+ 
+ */
 
 
 
@@ -159,3 +168,20 @@ Product::with('category')->get();
 
 // Busca os 'pais' (Categorias) que NÃO TÊM o relacionamento 'filho' (produtos).
 Category::doesntHave('products')->get();
+
+
+
+
+
+
+
+
+
+
+/*
+ 
+Olá, estamos na raiz de um projeto. Escanei-o, identifique e o descreva. 
+
+
+ Gora, use os recursos do Laravel Boost para conferir as Migrations para entender a persistêcia do banco de dados e a proposta do projeto e configure, com Código nais simples possível e as boas práticas da arquitetura MVC no Laravel/Boost. Configure todas as respectivas partes do projeto, na sequência:  Models, com todos os seus atributos e relacionamentos necessários; Controllers, com todos os métodos padrão (index, create, store, show, edit, update e destroy); Views necessárias (create, edit, index e show.blade.php), com a interface em português do Brasil e botões padronizados, para executar dotas as funções básicas de um CRUD (GET, POST, PUT/PATCH e DELETE);  e Rotas necessárias. Tudo isso com os códigos mais simples e minimalistas possível.
+ */
