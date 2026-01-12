@@ -38,8 +38,25 @@ Estenções:
  
  */
 
+/**
+ * Outros Comandos artisan úteis:
+ */
 
+php artisan list;          // lista os comados artisan possíveis
+php artisan db:monitor;    // Mostra as Base de Dados conectadas 
+php artisan migrate:status // Mostra status das migrations
+php artisan db:show        // Mostra todos os bancos de dados (possívelmente os autorizados)
+php artisan db:table 	   // Mostra menú de Tabelas dos Bancos para ver seus deralhes
+php artisan model:show NomeDoModelo   // Mostra os detalhes do Modelo Eloquent especificado
 
+/* limpeza de cache */
+php artisan cache:clear    // limpesa geral
+php artisan route:clear	   // Após modificar arquivos de rota (routes/*.php) e as mudanças não aparecerem
+php artisan config:clear   // Após alterar arquivos de configuração (.env ou config/*.php)
+php artisan view:clear     // Após modificar templates Blade (.blade.php) e as alterações não refletirem
+php artisan optimize:clear // executa todos os clears de uma vez + outros
+
+composer dump-autoload     // Após adicionar/remover classes manualmente sem usar composer require
 
 /**
 
@@ -48,8 +65,20 @@ php artisan tinker
 */
 
 // ===================================
-// 1. BUSCAS BÁSICAS
+// 1. BUSCAS BÁSICAS COM O ELOQUENT DENTO DO AMBIENTE DO TINKER.
+//
+// Eloquent é o ORM (Object-Relational Mapping) padrão do Laravel. Ele é uma camada de abstração que permite trabalhar com bancos de dados relacionais usando objetos PHP e modelos em vez de SQL direto, como na Facede DB.
 // ===================================
+
+
+// Listar tabelas do Banco de dados passado como parâmentro (similar à consulta com DB Facade "DB::select('SHOW TABLES;');" para o SGBD MySQL). Caso não tenha especificado Parâmentro, busca de todos os Bancos de dados autorizados. 
+Schema::getTableListing('nome_do_banco');
+
+// Informações das colunas (similar à consulta com DB Facade "DB::select('SHOW COLUMNS FROM users;');" ou "DB::select('DESCRIBE users;');". Dependendo do SQL do SGBD usado).
+Schema::getColumns('nome_da_tabela');
+
+// Apenas os nomes das colunas.
+Schema::getColumnListing('nome_banco.nome_tabela');
 
 // Busca todos os registros da tabela.
 Product::all();
