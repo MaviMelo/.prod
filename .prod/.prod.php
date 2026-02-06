@@ -203,7 +203,178 @@ Category::doesntHave('products')->get();
 
 
 
+// ===================================================
 
+// bootstrap/app.php
+
+
+<?php
+
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\Gate;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
+        commands: __DIR__.'/../routes/console.php',
+        health: '/up',
+    )
+    ->withMiddleware(function (Middleware $middleware): void {
+        //
+    })
+    ->withExceptions(function (Exceptions $exceptions): void {
+        //
+    })
+    ->booting(function (){
+        Gate::before(function ($user, $ability) {
+            if ($user->role === 'admin') {
+                return true;
+            }
+        });
+        Gate::define('librarianGate', function ($user){
+            return $user->role === 'librarian';
+        });
+        Gate::define('clientGate', function ($user){
+            return $user->role === 'librarian' || $user->role === 'client';
+        });
+    })
+    ->create();
+
+
+
+
+
+
+// ------------------------------------------------------------------
+
+
+
+
+// app/Http/Controllers/Api/PublisherApiController.php
+
+<?php
+
+namespace App\Http\Controllers\Api; // Mude para namespace Api se quiser separar
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\Publisher;
+use App\Models\Book;
+
+class PublisherApiController extends Controller
+{
+    // Middleware de autenticação se necessário
+    // public function __construct()
+    // {
+    //     $this->middleware('auth:sanctum');
+    // }
+    
+    public function index()
+    {
+        $this->authorize('clientGate');
+        
+        $publishers = Publisher::all();
+        
+        // ORIGINAL: return view('publishers.index', compact('publishers'));
+        return response()->json([
+            'data' => $publishers
+        ], 200);
+    }
+
+    public function create()
+    {
+        $this->authorize('librarianGate');
+        
+        // ORIGINAL: return view('publishers.create');
+        // API não retorna formulários HTML, apenas informação sobre como criar
+        return response()->json([
+            'message' => 'Para criar uma editora, envie uma requisição POST para este endpoint com os campos "name" e "address".'
+        ], 200);
+    }
+
+    public function store(Request $request)
+    {
+        $this->authorize('librarianGate');
+        
+        $request->validate([
+            'name' => 'required|string|max:255|unique:publishers,name',
+            'address' => 'nullable|string|max:255',
+        ]);
+        
+        $publisher = Publisher::create($request->all());
+        
+        // ORIGINAL: return redirect()->route('publishers.index')->with('success', 'Publicação cadastrada com sucesso.');
+        return response()->json([
+            'message' => 'Publicação cadastrada com sucesso.',
+            'data' => $publisher
+        ], 201);
+    }
+
+    public function show(Publisher $publisher)
+    {
+        $this->authorize('clientGate');
+        
+        $books = Book::where('publisher_id', $publisher->id)->get();
+
+        // ORIGINAL: return view('publishers.show', compact('publisher', 'book'));
+        return response()->json([
+            'data' => [
+                'publisher' => $publisher,
+                'books' => $books
+            ]
+        ], 200);
+    }
+
+    public function edit(Publisher $publisher)
+    {
+        $this->authorize('librarianGate');
+        
+        // ORIGINAL: return view('publishers.edit', compact('publisher'));
+        // API não retorna formulários de edição, apenas os dados para edição
+        return response()->json([
+            'data' => $publisher,
+            'message' => 'Para atualizar, envie uma requisição PUT/PATCH para este endpoint.'
+        ], 200);
+    }
+
+    public function update(Request $request, Publisher $publisher)
+    {
+        $this->authorize('librarianGate');
+        
+        $request->validate([
+            'name' => 'required|string|max:255|unique:publishers,name,'.$publisher->id,
+            'address' => 'nullable|string|max:255',
+        ]);
+        
+        $publisher->update($request->all());
+        
+        // ORIGINAL: return redirect()->route('publishers.index')->with('success', 'Publicação atualizada com sucesso.');
+        return response()->json([
+            'message' => 'Publicação atualizada com sucesso.',
+            'data' => $publisher
+        ], 200);
+    }
+
+    public function destroy(Publisher $publisher)
+    {
+        $this->authorize('librarianGate');
+        
+        $publisher->delete();
+
+        // ORIGINAL: return redirect()->route('publishers.index')->with('success', 'Publicação excluida:'.' '.$publisher->name);
+        return response()->json([
+            'message' => 'Publicação excluída: ' . $publisher->name,
+            'deleted_data' => $publisher
+        ], 200);
+    }
+}
+
+
+
+// =====================================================
 
 
 
