@@ -21,6 +21,25 @@
 # sudo snap install metasploit-framework  # (msfconsole)
 
 
+
+# --------------------------------------------------------
+
+### Configuração do Iptables
+
+# ssh -oHostKeyAlgorithms=+ssh-rsa,ssh-dss msfadmin@10.0.0.118    # senha: msfadmin (acesso via ssh)
+	
+# sudo su   # senha: msfadmin
+
+# iptables-save
+
+
+
+
+
+# --------------------------------------------------------
+
+
+
 ### Scanear rede com Nmap:
 
 # sudo nmap -sn -PR 192.168.56.0/24   # Listar hosts da rede.
