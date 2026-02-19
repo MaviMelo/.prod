@@ -36,4 +36,4 @@ iptables -A INPUT -p tcp --dport 8080 -m state --state NEW -j ACCEPT
 echo "=== Salvando as regras em /etc/iptables.rules ==="
 iptables-save > ./iptables.rules
 
-
+EFO	

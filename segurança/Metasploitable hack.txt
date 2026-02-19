@@ -27,13 +27,52 @@
 ### Configuração do Iptables
 
 # ssh -oHostKeyAlgorithms=+ssh-rsa,ssh-dss msfadmin@10.0.0.118    # senha: msfadmin (acesso via ssh)
-	
+	# sftp -oHostKeyAlgorithms=+ssh-rsa,ssh-dss msfadmin@10.0.0.118
+		# put iptables_script.sh
+
 # sudo su   # senha: msfadmin
 
 # iptables-save
 
+echo '#!/bin/bash
+# Firewall direto com ping habilitado
+iptables -F
+iptables -X
+iptables -t nat -F
+iptables -t mangle -F
+iptables -P INPUT DROP
+iptables -P FORWARD DROP
+iptables -P OUTPUT DROP
+iptables -A INPUT -i lo -j ACCEPT
+iptables -A OUTPUT -o lo -j ACCEPT
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A INPUT -p tcp --dport 80 -m state --state NEW -j ACCEPT
+iptables -A INPUT -p tcp --dport 443 -m state --state NEW -j ACCEPT
+iptables -A INPUT -p tcp --dport 8080 -m state --state NEW -j ACCEPT
+
+# Regras para ping (ICMP)
+iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
+iptables -A OUTPUT -p icmp --icmp-type echo-reply -j ACCEPT
+
+iptables-save > /etc/iptables.rules
+if ! grep -q "iptables-restore < /etc/iptables.rules" /etc/rc.local; then
+  sed -i "/^exit 0/i iptables-restore < /etc/iptables.rules" /etc/rc.local
+fi
+echo "=== REGRAS APLICADAS ==="
+iptables -L -v
+echo ""
+echo "=== SAÍDA DO iptables-save (copie abaixo) ==="
+iptables-save
+' > ./firewall.sh && chmod +x ./firewall.sh 
+
+# ./firewall.sh
 
 
+# Se quiser permitir também que o Metasploitable faça ping para fora:
+
+	iptables -A OUTPUT -p icmp --icmp-type echo-request -j ACCEPT
+	iptables -A INPUT -p icmp --icmp-type echo-reply -j ACCEPT
 
 
 # --------------------------------------------------------
